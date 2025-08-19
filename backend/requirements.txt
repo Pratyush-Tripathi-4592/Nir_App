@@ -1,0 +1,7 @@
+flask
+flask-cors
+numpy
+pillow
+scikit-learn
+opencv-python
+ultralytics      # optional: if missing, code falls back to a simple classifier

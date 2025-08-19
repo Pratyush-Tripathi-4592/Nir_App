@@ -1,0 +1,62 @@
+[
+  {
+    "name": "Potheri Station Area",
+    "lat": 12.8235,
+    "lng": 80.0452,
+    "score": 0.85
+  },
+  {
+    "name": "SRM Arch",
+    "lat": 12.8251,
+    "lng": 80.0485,
+    "score": 0.60
+  },
+  {
+    "name": "Kattankulathur Junction",
+    "lat": 12.8208,
+    "lng": 80.0431,
+    "score": 0.40
+  },
+  {
+    "name": "Guduvancheri Market",
+    "lat": 12.8510,
+    "lng": 80.0650,
+    "score": 0.90
+  },
+  {
+    "name": "Nellikuppam Road",
+    "lat": 12.8532,
+    "lng": 80.0681,
+    "score": 0.75
+  },
+  {
+    "name": "Thiruporur Road Junction",
+    "lat": 12.8499,
+    "lng": 80.0629,
+    "score": 0.65
+  },
+  {
+    "name": "Maraimalai Nagar Industrial",
+    "lat": 12.7955,
+    "lng": 80.0203,
+    "score": 0.70
+  },
+  {
+    "name": "Ford Factory Area",
+    "lat": 12.7981,
+    "lng": 80.0184,
+    "score": 0.50
+  },
+  {
+    "name": "Alandur",
+    "lat": 12.8350,
+    "lng": 80.0550,
+    "score": 0.55
+  },
+  {
+    "name": "Vandalur Zoo Outskirts",
+    "lat": 12.8100,
+    "lng": 80.0350,
+    "score": 0.30
+  }
+]
