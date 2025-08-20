@@ -1,0 +1,234 @@
+{
+  "abi": [
+    {
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "submissionId",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "submitter",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "trashType",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "weightKg",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "rewardAmount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "GarbageSubmitted",
+		"type": "event"
+	},
+	{
+		"inputs": [],
+		"name": "getNextSubmissionId",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_submissionId",
+				"type": "uint256"
+			}
+		],
+		"name": "getSubmission",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "submissionId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "submitter",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "trashType",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "weightKg",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "locationType",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "citizenType",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "areaDirtinessLevel",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "rewardAmount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getTotalSubmissions",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "submissions",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "submissionId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "submitter",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "trashType",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "weightKg",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "locationType",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "citizenType",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "areaDirtinessLevel",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "rewardAmount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_trashType",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_weightKg",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "_locationType",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_citizenType",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_areaDirtinessLevel",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_rewardAmount",
+				"type": "uint256"
+			}
+		],
+		"name": "submitGarbage",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+  ]
+}
