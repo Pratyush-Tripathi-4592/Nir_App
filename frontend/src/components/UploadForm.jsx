@@ -1,91 +1,86 @@
-import React, { useState } from 'react';
-import { submitToBlockchain } from '../services/blockchain';
+import React, { useState, useEffect, useRef } from 'react';
+import { Chart as ChartJS, ArcElement, Tooltip as ChartTooltip, Legend } from 'chart.js';
 
-const UploadForm = ({ citizenType, onResult }) => {
-  const [imageURL, setImageURL] = useState(null);
-  const [error, setError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+ChartJS.register(ArcElement, ChartTooltip, Legend);
 
-  const handleImageUpload = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setImageURL(URL.createObjectURL(e.target.files[0]));
+const ResultCard = ({ result, imageURL }) => {
+  const canvasRef = useRef(null);
+  const [dirtinessPoints, setDirtinessPoints] = useState([]);
+
+  useEffect(() => {
+    if (result && imageURL && canvasRef.current) {
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        img.onload = () => {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            // Add a check to ensure detections is an array
+            if (result.detections && Array.isArray(result.detections)) {
+                result.detections.forEach(det => {
+                    const [x1, y1, x2, y2] = det.box;
+                    const label = `${det.label} ${det.confidence.toFixed(2)}`;
+                    ctx.strokeStyle = det.label === 'recyclable' ? '#00FF00' : '#FF0000';
+                    ctx.lineWidth = 2;
+                    ctx.font = '16px Arial';
+                    ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+                    ctx.fillStyle = ctx.strokeStyle;
+                    const textWidth = ctx.measureText(label).width;
+                    const textHeight = 20;
+                    const textY = y1 > textHeight ? y1 - textHeight : y1;
+                    ctx.fillRect(x1, textY, textWidth + 8, textHeight);
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillText(label, x1 + 4, textY + 15);
+                });
+            }
+        };
+        img.src = imageURL;
     }
-  };
+  }, [result, imageURL]);
+  
+  // Add a robust check for the result object
+  if (!result || typeof result.lat === 'undefined' || typeof result.lng === 'undefined') {
+    return <p>Loading results or result data is incomplete...</p>;
+  }
+  
+  const userPosition = [parseFloat(result.lat), parseFloat(result.lng)];
+  const dirtinessLevel = result.dirtiness_level || 0;
+  const rewardPoints = result.reward_points || 0;
 
-  const handleClassify = (event) => {
-    event.preventDefault();
-    setIsSubmitting(true);
-    setError('');
-
-    navigator.geolocation.getCurrentPosition(async (position) => {
-      const formData = new FormData();
-      formData.append('file', imageURL);
-      formData.append('lat', position.coords.latitude);
-      formData.append('lng', position.coords.longitude);
-      formData.append('citizen_type', citizenType);
-
-      try {
-        const response = await fetch('http://127.0.0.1:5000/predict', {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-
-        const data = await response.json();
-
-        // Submit to blockchain with better error handling
-        try {
-          await submitToBlockchain({
-            trashType: data.trash_type || 'unknown',
-            weightKg: Math.floor(data.estimated_weight || 1),
-            locationType: 'urban',
-            citizenType: citizenType,
-            areaDirtinessLevel: Math.floor(data.cleanliness_score * 100) || 50,
-            rewardAmount: Math.floor(parseFloat(data.reward) || 0)
-          });
-
-          onResult(data, imageURL);
-        } catch (blockchainError) {
-          console.error('Blockchain error:', blockchainError);
-          setError('Blockchain submission failed. Please check your wallet connection and try again.');
-        }
-      } catch (error) {
-        console.error('API error:', error);
-        setError('Failed to process image. Please try again.');
-      } finally {
-        setIsSubmitting(false);
-      }
-    }, (geoError) => {
-      setError('Location access is required. Please enable location services.');
-      setIsSubmitting(false);
-    });
-  };
+  useEffect(() => {
+    const points = [];
+    for (let i = 0; i <= 100; i += 10) {
+      points.push({ x: i, y: Math.sin((i / 100) * 2 * Math.PI) * 50 + 50 });
+    }
+    setDirtinessPoints(points);
+  }, []);
 
   return (
-    <div className="card">
-      <h2>Upload Waste Image</h2>
-      <p>Selected Type: <strong>{citizenType.charAt(0).toUpperCase() + citizenType.slice(1)}</strong></p>
-      {isSubmitting && <p style={{ color: '#666' }}>Recording data on blockchain...</p>}
-      <div style={{ margin: '20px 0' }}>
-        <input type="file" accept="image/*" onChange={handleImageUpload} />
-      </div>
-      
-      {imageURL && (
-        <div style={{ margin: '20px 0' }}>
-          <img src={imageURL} alt="Uploaded Preview" style={{ maxWidth: '300px', borderRadius: '8px' }} />
+    <div className="card mb-4">
+      <div className="card-body">
+        <h5 className="card-title">Result Details</h5>
+        <div className="mb-3">
+          <strong>Location:</strong> Latitude {result.lat}, Longitude {result.lng}
         </div>
-      )}
-      
-      <button onClick={handleClassify}>
-        Predict Reward
-      </button>
+        <div className="mb-3">
+          <strong>Dirtiness Level:</strong> {dirtinessLevel}
+        </div>
+        <div className="mb-3">
+          <strong>Reward Points:</strong> {rewardPoints}
+        </div>
 
-      {error && <p style={{ color: 'yellow', marginTop: '15px' }}>{error}</p>}
+        <div className="mb-3">
+          <canvas ref={canvasRef} />
+        </div>
+
+        <div className="mb-3">
+          <h6>Dirtiness Level Over Time</h6>
+          <canvas id="dirtinessChart" />
+        </div>
+      </div>
     </div>
   );
 };
 
-export default UploadForm;
+export default ResultCard;
