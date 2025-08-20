@@ -1,86 +1,117 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Chart as ChartJS, ArcElement, Tooltip as ChartTooltip, Legend } from 'chart.js';
+import React, { useState } from 'react';
+import { submitToBlockchain } from '../services/blockchain';
 
-ChartJS.register(ArcElement, ChartTooltip, Legend);
+const UploadForm = ({ citizenType, onResult }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [imageFile, setImageFile] = useState(null);
+  const [previewURL, setPreviewURL] = useState('');
 
-const ResultCard = ({ result, imageURL }) => {
-  const canvasRef = useRef(null);
-  const [dirtinessPoints, setDirtinessPoints] = useState([]);
-
-  useEffect(() => {
-    if (result && imageURL && canvasRef.current) {
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d');
-        const img = new Image();
-        img.onload = () => {
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            // Add a check to ensure detections is an array
-            if (result.detections && Array.isArray(result.detections)) {
-                result.detections.forEach(det => {
-                    const [x1, y1, x2, y2] = det.box;
-                    const label = `${det.label} ${det.confidence.toFixed(2)}`;
-                    ctx.strokeStyle = det.label === 'recyclable' ? '#00FF00' : '#FF0000';
-                    ctx.lineWidth = 2;
-                    ctx.font = '16px Arial';
-                    ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
-                    ctx.fillStyle = ctx.strokeStyle;
-                    const textWidth = ctx.measureText(label).width;
-                    const textHeight = 20;
-                    const textY = y1 > textHeight ? y1 - textHeight : y1;
-                    ctx.fillRect(x1, textY, textWidth + 8, textHeight);
-                    ctx.fillStyle = '#FFFFFF';
-                    ctx.fillText(label, x1 + 4, textY + 15);
-                });
-            }
-        };
-        img.src = imageURL;
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      setPreviewURL(URL.createObjectURL(file));
+      setError('');
     }
-  }, [result, imageURL]);
-  
-  // Add a robust check for the result object
-  if (!result || typeof result.lat === 'undefined' || typeof result.lng === 'undefined') {
-    return <p>Loading results or result data is incomplete...</p>;
-  }
-  
-  const userPosition = [parseFloat(result.lat), parseFloat(result.lng)];
-  const dirtinessLevel = result.dirtiness_level || 0;
-  const rewardPoints = result.reward_points || 0;
+  };
 
-  useEffect(() => {
-    const points = [];
-    for (let i = 0; i <= 100; i += 10) {
-      points.push({ x: i, y: Math.sin((i / 100) * 2 * Math.PI) * 50 + 50 });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!imageFile) {
+      setError('Please select an image file');
+      return;
     }
-    setDirtinessPoints(points);
-  }, []);
+
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      // Get location
+      const position = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject);
+      });
+
+      // Create FormData object
+      const formData = new FormData();
+      formData.append('file', imageFile);
+      formData.append('citizen_type', citizenType || 'regular');
+      formData.append('lat', position.coords.latitude.toString());
+      formData.append('lng', position.coords.longitude.toString());
+
+      // Log FormData contents (for debugging)
+      for (let pair of formData.entries()) {
+        console.log(pair[0], pair[1]);
+      }
+
+      // Make API call
+      const response = await fetch('http://127.0.0.1:5000/predict', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Server error');
+      }
+
+      const result = await response.json();
+      onResult(result, previewURL);
+
+    } catch (error) {
+      console.error('Error:', error);
+      setError(error.message || 'Failed to process image');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
-    <div className="card mb-4">
-      <div className="card-body">
-        <h5 className="card-title">Result Details</h5>
-        <div className="mb-3">
-          <strong>Location:</strong> Latitude {result.lat}, Longitude {result.lng}
-        </div>
-        <div className="mb-3">
-          <strong>Dirtiness Level:</strong> {dirtinessLevel}
-        </div>
-        <div className="mb-3">
-          <strong>Reward Points:</strong> {rewardPoints}
-        </div>
-
-        <div className="mb-3">
-          <canvas ref={canvasRef} />
-        </div>
-
-        <div className="mb-3">
-          <h6>Dirtiness Level Over Time</h6>
-          <canvas id="dirtinessChart" />
-        </div>
+    <div className="container p-4">
+      <h2 className="mb-4">Upload Waste Image</h2>
+      <div className="mb-3">
+        <p>Selected Type: {citizenType}</p>
       </div>
+
+      <form onSubmit={handleSubmit}>
+        <div className="mb-3">
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileSelect}
+            className="form-control"
+            disabled={isSubmitting}
+          />
+        </div>
+
+        {error && (
+          <div className="alert alert-danger mb-3">
+            {error}
+          </div>
+        )}
+
+        {previewURL && (
+          <div className="mb-3">
+            <img
+              src={previewURL}
+              alt="Preview"
+              className="img-thumbnail"
+              style={{ maxHeight: '300px' }}
+            />
+          </div>
+        )}
+
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={!imageFile || isSubmitting}
+        >
+          {isSubmitting ? 'Processing...' : 'Predict Reward'}
+        </button>
+      </form>
     </div>
   );
 };
 
-export default ResultCard;
+export default UploadForm;
